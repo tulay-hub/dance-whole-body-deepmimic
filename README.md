@@ -1,3 +1,6 @@
+<p align="center"><a href="#zh">🇨🇳 中文</a> &nbsp;|&nbsp; <a href="#en">🇬🇧 English</a></p>
+<a id="zh"></a>
+
 # 01 · 跳舞全身（Dance Whole Body）
 
 ## 项目定位
@@ -49,6 +52,8 @@
 
 奖励逐项说明见 [`docs/REWARD_FRAMEWORKS.md`](docs/REWARD_FRAMEWORKS.md) 的全身舞蹈章节；接口细节见
 [`docs/INTERFACE_CONTRACTS.md`](docs/INTERFACE_CONTRACTS.md)。
+
+<a id="en"></a>
 
 ## English
 
