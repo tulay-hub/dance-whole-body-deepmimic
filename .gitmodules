@@ -1,0 +1,6 @@
+[submodule "framework/isaaclab_shared"]
+	path = framework/isaaclab_shared
+	url = https://github.com/tulay-hub/isaaclab-shared-dwaq-deepmimic.git
+[submodule "data/raw/dance_dataset"]
+	path = data/raw/dance_dataset
+	url = https://github.com/tulay-hub/dance-dataset.git
