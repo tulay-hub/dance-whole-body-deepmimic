@@ -1,0 +1,124 @@
+# Lens110 舞蹈 sim2real 运行时配置 v2 (2026-08-25)
+# 统一全关节 0.25 scale, 从头训练干净版本 (29000 轮)
+
+policy:
+  dance_model_name: "/config/model/humanoid_lens110_model/L110_dance_policy_29000.onnx"
+  obs_dim: 126          # 45 state + 81 future, 归一化已烘焙进 ONNX
+  action_dim: 13        # 12腿 + 1腰 (CSV 顺序), residual action
+  action_scale: 0.25    # 统一全关节 0.25
+  clip_action: 1.0
+  mlp: [256, 128, 64]
+
+robot_dof:
+  num_all_dof: 21
+  # 关节顺序/限位见 ORDERING_REFERENCE.md (与 v1 相同)
+
+control:
+  dance:
+    # PD (播放端, 髋 100/8 为部署加固; 训练资产为髋/膝40/5, 踝20/20)
+    stiffness:
+      left_hip_pitch_joint: 100.0
+      left_hip_roll_joint: 100.0
+      left_hip_yaw_joint: 100.0
+      left_knee_joint: 40.0
+      left_ankle_pitch_joint: 20.0
+      left_ankle_roll_joint: 20.0
+      right_hip_pitch_joint: 100.0
+      right_hip_roll_joint: 100.0
+      right_hip_yaw_joint: 100.0
+      right_knee_joint: 40.0
+      right_ankle_pitch_joint: 20.0
+      right_ankle_roll_joint: 20.0
+      left_shoulder_pitch_joint: 100.0
+      left_shoulder_roll_joint: 100.0
+      left_shoulder_yaw_joint: 100.0
+      left_elbow_joint: 100.0
+      right_shoulder_pitch_joint: 100.0
+      right_shoulder_roll_joint: 100.0
+      right_shoulder_yaw_joint: 100.0
+      right_elbow_joint: 100.0
+      torso_yaw_joint: 100.0
+    damping:
+      left_hip_pitch_joint: 8.0
+      left_hip_roll_joint: 8.0
+      left_hip_yaw_joint: 8.0
+      left_knee_joint: 5.0
+      left_ankle_pitch_joint: 20.0
+      left_ankle_roll_joint: 20.0
+      right_hip_pitch_joint: 8.0
+      right_hip_roll_joint: 8.0
+      right_hip_yaw_joint: 8.0
+      right_knee_joint: 5.0
+      right_ankle_pitch_joint: 20.0
+      right_ankle_roll_joint: 20.0
+      left_shoulder_pitch_joint: 5.0
+      left_shoulder_roll_joint: 5.0
+      left_shoulder_yaw_joint: 5.0
+      left_elbow_joint: 5.0
+      right_shoulder_pitch_joint: 5.0
+      right_shoulder_roll_joint: 5.0
+      right_shoulder_yaw_joint: 5.0
+      right_elbow_joint: 5.0
+      torso_yaw_joint: 5.0
+    effort_limit:  # 髋p/r + 膝 80, 其余 36
+      left_hip_pitch_joint: 80.0
+      left_hip_roll_joint: 80.0
+      left_hip_yaw_joint: 36.0
+      left_knee_joint: 80.0
+      left_ankle_pitch_joint: 36.0
+      left_ankle_roll_joint: 36.0
+      right_hip_pitch_joint: 80.0
+      right_hip_roll_joint: 80.0
+      right_hip_yaw_joint: 36.0
+      right_knee_joint: 80.0
+      right_ankle_pitch_joint: 36.0
+      right_ankle_roll_joint: 36.0
+      torso_yaw_joint: 36.0
+      left_shoulder_pitch_joint: 36.0
+      left_shoulder_roll_joint: 36.0
+      left_shoulder_yaw_joint: 36.0
+      left_elbow_joint: 36.0
+      right_shoulder_pitch_joint: 36.0
+      right_shoulder_roll_joint: 36.0
+      right_shoulder_yaw_joint: 36.0
+      right_elbow_joint: 36.0
+
+  # 动作语义: q_des[腿] = default(帧0) + 0.25*clip(a,-1,1); 腰 = 0.25*a; 臂 = 参考开环
+  action_scale: 0.25
+  clip_action: 1.0
+
+timing:
+  motion_fps: 100
+  isaac_physics_hz: 500
+  isaac_decimation: 5
+  isaac_policy_hz: 100
+  mujoco_physics_hz: 1000   # sim_flatfoot 默认, 42500/29000 均验证 36s
+  mujoco_decimation: 10
+  mujoco_policy_hz: 100
+
+init_state:
+  # 过渡版 motion 第 0 帧 (缓和前倾 4°, 踝补偿 1°)
+  pos: [0.024599, -0.269941, 0.659900]
+  rot: [0.699323, -0.022836, -0.026560, -0.713947]   # wxyz
+  joint_pos:
+    left_hip_pitch_joint: 0.205537
+    right_hip_pitch_joint: 0.213849
+    torso_yaw_joint: -0.020909
+    left_hip_roll_joint: 0.158203
+    right_hip_roll_joint: -0.191155
+    left_shoulder_pitch_joint: 0.658771
+    right_shoulder_pitch_joint: 0.629726
+    left_hip_yaw_joint: 0.293051
+    right_hip_yaw_joint: -0.304459
+    left_shoulder_roll_joint: 0.941942
+    right_shoulder_roll_joint: -1.125977
+    left_knee_joint: -0.053091
+    right_knee_joint: -0.068512
+    left_shoulder_yaw_joint: -0.479678
+    right_shoulder_yaw_joint: 0.511430
+    left_ankle_pitch_joint: 0.058394
+    right_ankle_pitch_joint: 0.076278
+    left_elbow_joint: -1.131860
+    right_elbow_joint: -1.114993
+    left_ankle_roll_joint: -0.177711
+    right_ankle_roll_joint: 0.199545

@@ -1,0 +1,38 @@
+action_clip: null
+action_mode: reference
+action_scale: 0.25
+observation_dim: 159
+action_dim: 21
+physics_hz: 500
+policy_hz: 100
+motion_hz: 100
+root_ang_vel_frame: body
+foot_contact: null
+policy_joint_names: [left_hip_pitch_joint, left_hip_roll_joint, left_hip_yaw_joint, left_knee_joint,
+  left_ankle_pitch_joint, left_ankle_roll_joint, right_hip_pitch_joint, right_hip_roll_joint,
+  right_hip_yaw_joint, right_knee_joint, right_ankle_pitch_joint, right_ankle_roll_joint,
+  torso_yaw_joint, left_shoulder_pitch_joint, left_shoulder_roll_joint, left_shoulder_yaw_joint,
+  left_elbow_joint, right_shoulder_pitch_joint, right_shoulder_roll_joint, right_shoulder_yaw_joint,
+  right_elbow_joint]
+action_joint_names: [left_hip_pitch_joint, left_hip_roll_joint, left_hip_yaw_joint, left_knee_joint,
+  left_ankle_pitch_joint, left_ankle_roll_joint, right_hip_pitch_joint, right_hip_roll_joint,
+  right_hip_yaw_joint, right_knee_joint, right_ankle_pitch_joint, right_ankle_roll_joint,
+  torso_yaw_joint, left_shoulder_pitch_joint, left_shoulder_roll_joint, left_shoulder_yaw_joint,
+  left_elbow_joint, right_shoulder_pitch_joint, right_shoulder_roll_joint, right_shoulder_yaw_joint,
+  right_elbow_joint]
+dataset_joint_order: isaac_usd_interleaved_unchanged
+default_joint_pos: [-0.14, -0.01, -0.1, 0.36, -0.2575, 0.0, -0.14, -0.01, 0.1, 0.36,
+  -0.2575, 0.0, 0.0, 0.4, 0.2, 0.0, -0.8, 0.4, -0.2, 0.0, -0.8]
+joint_damping: [5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5.0, 5.0, 5.0, 5.0, 5.0, 5.0,
+  5.0, 5.0]
+joint_names: [left_hip_pitch_joint, left_hip_roll_joint, left_hip_yaw_joint, left_knee_joint,
+  left_ankle_pitch_joint, left_ankle_roll_joint, right_hip_pitch_joint, right_hip_roll_joint,
+  right_hip_yaw_joint, right_knee_joint, right_ankle_pitch_joint, right_ankle_roll_joint,
+  torso_yaw_joint, left_shoulder_pitch_joint, left_shoulder_roll_joint, left_shoulder_yaw_joint,
+  left_elbow_joint, right_shoulder_pitch_joint, right_shoulder_roll_joint, right_shoulder_yaw_joint,
+  right_elbow_joint]
+joint_stiffness: [40, 40, 40, 40, 55, 55, 40, 40, 40, 40, 55, 55, 100, 20, 20, 20,
+  20, 20, 20, 20, 20]
+observation_history_lengths: [1, 1, 1, 1, 1, 1]
+observation_names: [root_rot_tan_norm, root_ang_vel_b, joint_pos, joint_vel, ref_root_rot_tan_norm,
+  ref_joint_pos]

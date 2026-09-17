@@ -1,0 +1,141 @@
+# Omniverse
+**/*.dmp
+**/.thumbs
+
+# Python
+.DS_Store
+**/*.egg-info/
+**/__pycache__/
+**/.pytest_cache/
+**/.mplconfig/
+**/*.pyc
+**/*.pb
+
+# IDE
+**/.idea/
+**/.vscode/
+# Don't ignore the top-level .vscode directory as it is
+# used to configure VS Code settings
+!.vscode
+
+# Outputs
+**/runs/*
+**/logs/*
+**/recordings/*
+**/output/*
+**/outputs/*
+**/videos/*
+**/wandb/*
+**/.neptune/*
+docker/artifacts/
+*.tmp
+*.pyc
+
+# Release baseline policies are intentionally versioned.
+!base/
+!base/**
+# Playback/ONNX exports are reproducible outputs, even when the source
+# checkpoint lives in base/.
+base/*_exported/
+
+# Isaac-Sim packman
+_isaac_sim*
+_repo
+_build
+.lastformat
+
+# ---------------------------------------------------------------------------
+# Reorganized Lens110 workspace
+# ---------------------------------------------------------------------------
+
+# Training/runtime outputs. Keep them on disk for local reproducibility, but
+# do not put multi-gigabyte logs/checkpoints in the public repository.
+**/logs/
+**/outputs/
+**/runs/
+**/recordings/
+**/videos/
+**/install/
+**/build/
+**/dist/
+**/.cache/
+
+# Local package archives and generated release bundles. The actual bundles
+# remain under each project's exports/ directory and are listed in its README.
+**/*.zip
+**/*.tar.gz
+**/*.tar.xz
+**/*.tgz
+**/*.tar
+archive/release_packages/
+archive/history/
+archive/legacy/
+archive/reference/
+
+# Large/private motion and body-model stores. Publish selected examples via
+# Git LFS or a GitHub Release after checking their licenses.
+tools/retargeting/robot_retargeter/dataset/
+tools/retargeting/robot_retargeter/asset/body_models/
+tools/retargeting/robot_retargeter/asset/*
+!tools/retargeting/robot_retargeter/asset/robot/
+!tools/retargeting/robot_retargeter/asset/robot/lens110/
+!tools/retargeting/robot_retargeter/asset/robot/lens110/**
+tools/retargeting/robot_retargeter/asset/robot/*
+!tools/retargeting/robot_retargeter/asset/robot/lens110/
+!tools/retargeting/robot_retargeter/asset/robot/lens110/**
+!tools/retargeting/robot_retargeter/asset/skeleton/
+!tools/retargeting/robot_retargeter/asset/skeleton/**
+projects/02_dance_half_body/framework/legged_lab_upper_lower/pitchRoll2UpperLower/ankle_model/*_joint_data*.csv
+**/assets/body_models/
+**/*.usd
+**/*.dae
+**/rsl_rl_lib.egg-info/
+
+# Checkpoint and tensor artifacts should use Git LFS or an external release.
+**/*.pt
+**/*.pth
+**/*.onnx
+**/*.onnx.data
+**/*.npz
+**/*.npy
+**/*.pkl
+**/*.tfevents.*
+**/*.bak*
+
+# Historical nested Git metadata must not become embedded repositories when
+# the reorganized root is initialized.
+**/.git-legacy/
+**/.git/
+
+# Machine-specific compatibility link retained only for local history.
+deployment/infer_zero/infer_zero/latest
+deployment/infer_zero/
+deployment/lens110_hardware/
+deployment/reference_docs/unverified_robot_bundle/
+projects/01_dance_whole_body/data/reference/
+frameworks/shared/lens110_isaaclab/lens110/legged_lab_lbot/packages
+
+# These are local convenience links into ignored training logs/packages. Keep
+# the links on the workstation, but do not publish dangling links in clones.
+/projects/*/experiments/deepmimic_runs
+/projects/*/experiments/dwaq_runs
+/projects/*/experiments/runs
+/projects/*/exports/training_exports
+/frameworks/shared/lens110_isaaclab/lens110/legged_lab_lbot/packages
+
+# Old root-level aliases are kept on this workstation so existing commands and
+# active processes continue to resolve, but the public repository uses the
+# canonical projects/frameworks/tools paths above.
+/GMR-master
+/lens110RL
+/lens110-amp-mjlab
+/robot_retargeter
+/资料/legged_lab_gitee
+/tb_logs/
+/动作
+/动作1
+/动作2
+/动作3
+/动作4
+/动作5
+/舞蹈BVH
