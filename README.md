@@ -1,12 +1,12 @@
-<p align="center"><a href="#zh">🇨🇳 中文</a> &nbsp;|&nbsp; <a href="#en">🇬🇧 English</a></p>
+<p align="center"><a href="#zh">中文</a> &nbsp;|&nbsp; <a href="#en">English</a></p>
 <a id="zh"></a>
 
 # 01 · 跳舞全身（Dance Whole Body）
 
 ## 项目定位
 
-这是 Lens110 当前的全身舞蹈模仿主线：DeepMimic/reference residual policy，完整 21-DOF 输出，当前部署
-取 H 版 `161 -> 21` 契约。
+这是双足人形机器人当前的全身舞蹈模仿主线：DeepMimic/reference residual policy，完整 21-DOF 输出，当前部署
+ 取 H 版 `161 -> 21` 契约。
 
 - 训练任务：`LeggedLab-Isaac--Deepmimic-Lens110-v0`
 - PLAY 任务：`LeggedLab-Isaac--Deepmimic-Lens110-Play-v0`
@@ -14,6 +14,14 @@
 - 动作：`21`
 - 物理/策略频率：`500 Hz / 100 Hz`
 - 动作语义：`q_des = reference_joint_pos + 0.25 * clipped_action`
+
+## 训练架构和演示
+
+完整的 DeepMimic/PPO 原理、161 维观测、奖励权重、终止门、导出和真机流程见 [`docs/TRAINING_ARCHITECTURE.md`](docs/TRAINING_ARCHITECTURE.md)。
+
+<video controls width="720" src="docs/media/dance-demo.mp4"></video>
+
+[打开或下载全身舞蹈演示视频](docs/media/dance-demo.mp4)
 
 ## 目录
 
