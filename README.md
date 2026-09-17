@@ -141,7 +141,7 @@ docs/
 在包含 `isaaclab`/`legged_lab` 依赖的本机环境中执行：
 
 ```bash
-./projects/01_dance_whole_body/scripts/train.sh --headless --num_envs 1024 --max_iterations 60000
+./scripts/train.sh --headless --num_envs 1024 --max_iterations 60000
 ```
 
 开始训练前检查：
@@ -222,6 +222,6 @@ The environment reward weights are: root position `+0.15`, root rotation `+0.15`
 
 ## 4. Reproduction and deployment
 
-Run `./projects/01_dance_whole_body/scripts/train.sh --headless --num_envs 1024 --max_iterations 60000` with the local Isaac Lab environment. Verify motion names, 161/21 dimensions, the 0.25 residual scale, replay, and deployment metadata before export. Keep raw motion, retargeted motion, training runs, checkpoints, exports, and validation records in their respective directories.
+Run `./scripts/train.sh --headless --num_envs 1024 --max_iterations 60000` with the local Isaac Lab environment. Verify motion names, 161/21 dimensions, the 0.25 residual scale, replay, and deployment metadata before export. Keep raw motion, retargeted motion, training runs, checkpoints, exports, and validation records in their respective directories.
 
 MuJoCo qpos stores the root quaternion as `wxyz`; GMR/deployment CSV uses `xyzw`. The conversion must be explicit. A hardware run additionally requires matching joint order, action scaling, PD/effort limits, normalization, emergency stop, and supervised staged testing.
