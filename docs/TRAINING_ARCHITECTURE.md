@@ -3,6 +3,36 @@
 
 # 跳舞全身训练架构（DeepMimic）
 
+## 训练权重如何理解 / Interpreting training weights
+
+本文按本仓库当前代码说明训练机制；已有策略的复现参数以对应 run 的 `params/env.yaml`、`params/agent.yaml` 和部署配置为准。奖励混合系数、逐项环境奖励权重、优化器 loss 系数、专家样本比例以及课程采样范围是不同概念。
+
+混合系数可以写成 85%/15% 这样的配置比例，但不能代表训练过程中实际累计奖励贡献；单项 reward 的数值范围、门控、控制步长和出现频率都不同。需要实际贡献占比时，应统计同一 run 中每项加权回报，而不是把配置权重归一化成百分比。
+
+Configuration mixing coefficients are not measured reward contributions. Environment weights, optimizer coefficients, expert sampling and curriculum schedules describe different parts of training. Reproduce a saved policy with its own run snapshots.
+
+## 参考动作指导、残差控制与 PPO 系数
+
+DeepMimic 通过明确的参考误差奖励进行专家动作跟踪，训练以参考帧初始化（RSI），再由 PPO 学习参考姿态上的残差修正。全身 H 与侧滚都使用 `ReferenceJointPositionAction`：
+
+```text
+q_target = q_reference_current + 0.25 * action
+L_PPO = L_clip + 1.0*L_value - 0.005*entropy
+clip_actions = None
+fixed_action_std = True; init_noise_std = 1.0
+action_mean_l2_coef = 0.0
+```
+
+当前 runner 未启用动作硬裁剪，因此 `0.25` 是残差比例，不能声称 action 必在 [-1,1] 或 residual 必在 ±0.25 rad。H/159-D 不能混用 checkpoint，原因是输入维度、角速度坐标系和关节顺序不同，而不是参考中心残差公式不同。
+
+参考跟踪的原始权重之和为 1.75：root position 0.15、quaternion 0.15、root linear velocity 0.10、root angular velocity 0.05、key-body position 0.30、DOF position 0.80、DOF velocity 0.10。若只在这七项内部比较系数，比例依次为 8.57%、8.57%、5.71%、2.86%、17.14%、45.71%、5.71%；这仅是配置系数占比，不是含 alive/惩罚后的实际回报占比。H alive=0.20，SideRoll alive=0.05，SideRoll 另有静止段根速度惩罚 -2.0。
+
+当前 PPO 使用 32 rollout steps、5 epochs、4 mini-batches、初始 LR=1e-3（adaptive）、gamma=0.99、lambda=0.95、clip=0.2。动作均值额外 L2 系数为 0；环境 action-rate 权重 -0.001 仍有效，并在 0.25 缩放后的残差空间计算。
+
+源码相对共享框架 `lens110/legged_lab_lbot/`：`source/legged_lab/legged_lab/tasks/locomotion/deepmimic/mdp/actions.py`，`config/lens110/lens110_deepmimic_env_cfg.py`、`lens110_deepmimic_env_cfg_159.py`、`lens110_deepmimic_env_cfg_sideroll.py` 与 `agents/rsl_rl_ppo_cfg.py`（config 相对同一 deepmimic 目录）。
+
+English: H and SideRoll both use reference-centered residual actions. Current runner has no hard action clipping, fixed exploration std=1.0 and action-mean L2 coefficient=0. PPO value/entropy coefficients are 1.0/0.005. Seven tracking weights sum to 1.75, but normalizing those weights only compares configured tracking coefficients; it does not measure reward contribution. H/159-D policies differ in observation/order contracts.
+
 ## 1. 项目定位
 
 本项目是双足人形机器人的 21-DOF 全身舞蹈模仿训练链路。训练在本地 Isaac Lab/LeggedLab 环境中运行，使用参考动作驱动的 DeepMimic residual policy：参考动作提供主体姿态，策略输出小幅 residual，再由关节位置控制器执行。当前 H 版部署契约是 `161 -> 21`，不要与独立的 `159 -> 21` URDF-order 侧滚契约混用。
@@ -14,7 +44,7 @@
 | policy observation | `161` |
 | action | `21`，按双足人形机器人 H 版关节顺序 |
 | 仿真频率 / policy 频率 | `500 Hz / 100 Hz` |
-| 控制语义 | `q_des = q_ref + 0.25 * clip(action)` |
+| 控制语义 | `q_des = q_ref + 0.25 * action` |
 | 主要算法 | DeepMimic reference tracking + PPO |
 
 ## 2. 原理
@@ -26,8 +56,8 @@ DeepMimic 不直接让策略从零生成一套舞蹈，而是把动作数据变�
 ```text
 reference frame -> q_ref
 policy observation = robot state + future reference features
-policy action = a_residual in [-1, 1]^21
-q_des = q_ref + 0.25 * clip(a_residual)
+policy action = a_residual in R^21 (current runner: clip_actions=None)
+q_des = q_ref + 0.25 * a_residual
 joint-position controller -> simulator
 ```
 
@@ -91,7 +121,7 @@ actor 输入按配置中的 term 顺序拼接，不能只按名字排序或自�
 |---|---:|---|
 | `root_rot_tan_norm` | 6 | 根部相对方向的连续旋转表示 |
 | `root_ang_vel_w` | 3 | 世界系根部角速度 |
-| `joint_pos` | 21 | 当前关节位置或相对默认位置 |
+| `joint_pos` | 21 | 当前绝对关节位置（mdp.joint_pos） |
 | `joint_vel` | 21 | 当前关节速度 |
 | `ref_root_rot` | 24 | 未来 4 帧 root rotation，每帧 6 维 |
 | `ref_joint_pos` | 84 | 未来 4 帧参考关节位置，每帧 21 维 |
@@ -106,11 +136,11 @@ actor 输入按配置中的 term 顺序拼接，不能只按名字排序或自�
 
 | 类别 | Reward term | 权重 | 作用 |
 |---|---|---:|---|
-| 参考 root | `ref_track_root_pos_error_exp` | `+0.15` | root 平移跟踪 |
-| 参考 root | `ref_track_root_rot_error_exp` | `+0.15` | root 姿态跟踪 |
-| 参考 root | `ref_track_root_lin_vel_error_exp` | `+0.10` | root 线速度跟踪 |
-| 参考 root | `ref_track_root_ang_vel_error_exp` | `+0.05` | root 角速度跟踪 |
-| 参考关键点 | `ref_track_key_body_pos_error_exp` | `+0.30` | 关键刚体位置和整体形态跟踪 |
+| 参考 root | `ref_track_root_pos_w_error_exp` | `+0.15` | root 平移跟踪 |
+| 参考 root | `ref_track_quat_error_exp` | `+0.15` | root 姿态跟踪 |
+| 参考 root | `ref_track_root_vel_w_error_exp` | `+0.10` | root 线速度跟踪 |
+| 参考 root | `ref_track_root_ang_vel_w_error_exp` | `+0.05` | root 角速度跟踪 |
+| 参考关键点 | `ref_track_key_body_pos_b_error_exp` | `+0.30` | 关键刚体位置和整体形态跟踪 |
 | 参考关节 | `ref_track_dof_pos_error_exp` | `+0.80` | 21 个关节角跟踪，环境奖励中权重最大 |
 | 参考关节 | `ref_track_dof_vel_error_exp` | `+0.10` | 关节速度/动态节奏跟踪 |
 | 生存 | `alive` | `+0.20` | 未触发失败终止时保持正反馈 |
@@ -118,7 +148,7 @@ actor 输入按配置中的 term 顺序拼接，不能只按名字排序或自�
 | 正则 | `joint_acc` | `-2.5e-8` | 抑制高频关节加速度 |
 | 正则 | `action_rate_l2_scaled` | `-0.001` | 惩罚 residual/action 的突变，按 `0.25` 缩放后的目标空间计算 |
 
-终止条件不是正奖励项：base 接触、base 高度低于约 `0.3 m`、姿态约超过 `40°`、root 偏差约 `1.2 m`、关键点偏差约 `1.5 m`、参考动作完成都由 TerminationManager 处理。终止时的回报影响通过 episode 结束以及对应的终止惩罚实现，不能把终止阈值写成 reward weight。
+终止条件不是正奖励项：base 接触、base 高度低于约 `0.3 m`、姿态约超过 `40°`、root 偏差约 `1.2 m`、关键点偏差约 `1.5 m`、参考动作完成都由 TerminationManager 处理。本配置通过 episode 结束影响回报；未配置独立的 termination_penalty 奖励项，不能把终止阈值写成 reward weight。
 
 ## 7. 数据、训练和导出目录
 
@@ -186,7 +216,7 @@ flowchart TD
 
 This repository contains the 21-DOF whole-body dance imitation pipeline for a bipedal humanoid robot. It uses Isaac Lab/LeggedLab, reference-motion DeepMimic tracking, and PPO. The current H-line policy contract is 161 observations to 21 residual joint-position actions at 500 Hz physics and 100 Hz policy frequency. It is separate from the 159-dimensional URDF-order side-roll contract.
 
-The reference motion supplies the nominal pose. The actor observes robot state and future reference features, predicts a bounded residual, and the action manager applies `q_des = q_ref + 0.25 * clip(action)`. Exponential tracking terms, survival, torque/acceleration/action-rate regularization, and explicit termination gates form the environment objective.
+The reference motion supplies the nominal pose. The actor observes robot state and future reference features, predicts a residual, and the action manager applies `q_des = q_ref + 0.25 * action`. Exponential tracking terms, survival, torque/acceleration/action-rate regularization, and explicit termination gates form the environment objective.
 
 ## 2. Architecture
 
