@@ -3,14 +3,6 @@
 
 # 跳舞全身训练架构（DeepMimic）
 
-## 训练权重如何理解 / Interpreting training weights
-
-本文按本仓库当前代码说明训练机制；已有策略的复现参数以对应 run 的 `params/env.yaml`、`params/agent.yaml` 和部署配置为准。奖励混合系数、逐项环境奖励权重、优化器 loss 系数、专家样本比例以及课程采样范围是不同概念。
-
-混合系数可以写成 85%/15% 这样的配置比例，但不能代表训练过程中实际累计奖励贡献；单项 reward 的数值范围、门控、控制步长和出现频率都不同。需要实际贡献占比时，应统计同一 run 中每项加权回报，而不是把配置权重归一化成百分比。
-
-Configuration mixing coefficients are not measured reward contributions. Environment weights, optimizer coefficients, expert sampling and curriculum schedules describe different parts of training. Reproduce a saved policy with its own run snapshots.
-
 ## 参考动作指导、残差控制与 PPO 系数
 
 DeepMimic 通过明确的参考误差奖励进行专家动作跟踪，训练以参考帧初始化（RSI），再由 PPO 学习参考姿态上的残差修正。全身 H 与侧滚都使用 `ReferenceJointPositionAction`：
@@ -149,6 +141,14 @@ actor 输入按配置中的 term 顺序拼接，不能只按名字排序或自�
 | 正则 | `action_rate_l2_scaled` | `-0.001` | 惩罚 residual/action 的突变，按 `0.25` 缩放后的目标空间计算 |
 
 终止条件不是正奖励项：base 接触、base 高度低于约 `0.3 m`、姿态约超过 `40°`、root 偏差约 `1.2 m`、关键点偏差约 `1.5 m`、参考动作完成都由 TerminationManager 处理。本配置通过 episode 结束影响回报；未配置独立的 termination_penalty 奖励项，不能把终止阈值写成 reward weight。
+
+## 训练权重如何理解 / Interpreting training weights
+
+本文按本仓库当前代码说明训练机制；已有策略的复现参数以对应 run 的 `params/env.yaml`、`params/agent.yaml` 和部署配置为准。奖励混合系数、逐项环境奖励权重、优化器 loss 系数、专家样本比例以及课程采样范围是不同概念。
+
+混合系数可以写成 85%/15% 这样的配置比例，但不能代表训练过程中实际累计奖励贡献；单项 reward 的数值范围、门控、控制步长和出现频率都不同。需要实际贡献占比时，应统计同一 run 中每项加权回报，而不是把配置权重归一化成百分比。
+
+Configuration mixing coefficients are not measured reward contributions. Environment weights, optimizer coefficients, expert sampling and curriculum schedules describe different parts of training. Reproduce a saved policy with its own run snapshots.
 
 ## 7. 数据、训练和导出目录
 
